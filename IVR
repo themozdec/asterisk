@@ -1,0 +1,106 @@
+[IVR_1]
+exten => 5000,1,Answer()
+same => n,Wait(2)
+same => n,Record(/tmp/sea:wav)
+same => n,Wait(2)
+same => n,Playback(/tmp/sea)
+same => n,Wait(2)
+same => n,Hangup()
+
+[IVR_2]
+;exten => 5002,1,Background(vm-enter-num-to-call)
+
+exten => 5002,1,Background(/etc/asterisk/ivr)
+same => n,Set(TIMEOUT(digit)=3)
+same => n,Set(TIMEOUT(response)=10)
+same => n,Waitexten(10)
+
+exten => _XXX,1,Set(telefono=${ODBC_CONSULTAR(${CALLERID(num)})})
+same => n,Set(CALLERID(num)=99999)
+same => n,Set(CALLERID(name)="hola")
+same => n,ExecIf($["${DEVICE_STATE(SIP/ext${EXTEN})}" != "INVALID"]?Dial(SIP/ext${EXTEN}):Goto(IVR_2,i,2))
+
+;exten => _XXX,1,NoOp(${DEVICE_STATE(SIP/ext${EXTEN})})
+
+exten => 0,1,Dial(SIP/ext101)
+
+;exten => 1,1,Answer()
+;same => n,Queue(q1)
+
+exten => 105,1,Dial(SIP/105,10)
+same => n,Voicemail(105@default)
+same => n,Hangup()
+
+;exten => 1,1,Set(DIALGROUP(ventas,add)=SIP/ext108)
+;same => n,Set(DIALGROUP(ventas,add)=SIP/ext109)
+;same => n,Set(DIALGROUP(ventas,add)=SIP/ext110)
+;same => n,Dial(${DIALGROUP(ventas)})
+
+exten => i,1,Answer()
+same => n,Playback(/etc/asterisk/incorrect)
+;same => n,Playback(invalid)
+same => n,Goto(IVR_2,5002,1)
+same => n,Hangup()
+
+[IVR_3]
+exten => 527281150039,1,Background(/etc/asterisk/ivr)
+same => n,Set(TIMEOUT(digit)=3)
+same => n,Set(TIMEOUT(response)=10)
+same => n,Waitexten(10)
+
+;exten  => _XXX,1,Dial(SIP/ext${EXTEN})
+
+exten => _XXX,1,Set(numero=${CALLERID(num):4:14})
+same => n,Set(escuela=${ODBC_CONSULTAR_ESCUELA(${numero})})
+same => n,Set(alumno=${ODBC_CONSULTAR_ALUMNO(${numero})})
+;same => n,Set(CURL_RESULT=${CURL(http://192.168.15.235/api/sippeers)})
+;same => n,Set(result=${JSONELEMENT(CURL_RESULT,name)})
+;same => n,Set(country=${SHELL(curl -s http://192.168.15.235/api/sippeers | jq '.type')})
+;same => n,Noop(Country code is: ${country})
+same => n,AGI(/etc/asterisk/test.php)
+same => n,NoOp(${hola})
+same => n,Set(CALLERID(num)=${escuela})
+same => n,Set(CALLERID(name)=${alumno})
+same => n,ExecIf($["${DEVICE_STATE(SIP/ext${EXTEN})}" != "INVALID"]?Dial(SIP/ext${EXTEN}):Goto(IVR_3,i,2))
+
+exten => 0,1,Dial(SIP/ext101)
+
+exten => i,1,Answer()
+same => n,Playback(/etc/asterisk/incorrect)
+;same => n,Playback(invalid)
+same => n,Goto(IVR_3,527281150039,1)
+same => n,Hangup()
+
+[IVR_4]
+exten => 525541616794,1,Answer()
+same => n,Playback(/etc/asterisk/sea)
+same => n,Set(TIMEOUT(digit)=3)
+same => n,Set(TIMEOUT(response)=10)
+same => n,Waitexten(10)
+
+exten => 1,1,Answer()
+same => n,NoOp("Hola")
+
+exten => 2,1,Answer()
+same => n,Queue(q1)
+
+exten => i,1,Answer()
+same => n,Playback(/etc/asterisk/incorrect)
+same => n,Goto(IVR_4,525541616794,1)
+
+[IVR_44]
+exten => 4444,1,Answer()
+same => n,Playback(/etc/asterisk/sea)
+same => n,Set(TIMEOUT(digit)=1)
+same => n,Set(TIMEOUT(response)=10)
+same => n,Waitexten(10)
+
+exten => 1,1,Answer()
+same => n,NoOp("Hola")
+
+exten => 2,1,Answer()
+same => n,Queue(q1)
+
+exten => i,1,Answer()
+same => n,Playback(/etc/asterisk/incorrect)
+same => n,Goto(IVR_44,4444,1)
